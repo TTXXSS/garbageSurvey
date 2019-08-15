@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <link href="./resources/css/ext-all.css" type="text/css" rel="stylesheet" />
+    <script src="./adapter/ext/ext-base.js"></script>
+    <script src="./ext-all.js"></script>
+</head>
+<script type="text/javascript">
+    Ext.onReady(function () {
+        var navHandler = function (direction) {
+            var wizard = Ext.getCmp('wizard').layout;
+            var prev = Ext.getCmp('move-prev');
+            var next = Ext.getCmp('move-next');
+            var activeId = wizard.activeItem.id;
+
+            if (activeId == 'card-0') {
+                if (direction == 1) {
+                    wizard.setActiveItem(1);
+                    prev.setDisabled(false);
+                    //getRadioSelect();
+
+                }
+            } else if (activeId == 'card-1') {
+                if (direction == -1) {
+                    wizard.setActiveItem(0);
+                    prev.setDisabled(true);
+                } else {
+                    wizard.setActiveItem(2);
+                    next.setDisabled(true);
+                    getCheckBoxSelect();
+                    Ext.getCmp('myGarbage').setValue(getRadioSelect());  //显示选中的垃圾类型
+                    Ext.getCmp('waysOfSolvingGarbage').setValue(getcheckedBoxLabel());  //显示选中的垃圾处理方式
+
+                }
+            } else if (activeId == 'card-2') {
+                if (direction == -1) {
+                    wizard.setActiveItem(1);
+                    next.setDisabled(false);
+                }
+            }
+        }
+
+        function getRadioSelect() {    //获取选中的垃圾
+            let radioSelected = Ext.getCmp("panel1").items.items;
+            let filterRadio = radioSelected.filter(item => item.checked);
+             //console.log(filterRadio);
+            if (filterRadio.length === 0)
+                return '';
+            let filterBoxLabel = filterRadio[0].boxLabel;
+            return filterBoxLabel;
+        }
+
+        function getCheckBoxSelect() {    //获取选中的垃圾处理方式
+            let checkBoxSelected = Ext.getCmp("panel2").items.items;
+            let filterChecked = checkBoxSelected.filter(item => item.checked);
+            //console.log(filterChecked);
+            if (filterChecked.length === 0)
+                return '';
+            return filterChecked;
+        }
+
+        function getcheckedBoxLabel() {                 //获取垃圾处理的方式
+            let checkedGarbage = getCheckBoxSelect();
+            let checkedBoxLabel = "";
+            if (checkedGarbage === '')
+                return '';
+            else
+                for (let i = 0; i < checkedGarbage.length; i++)
+                    checkedBoxLabel += checkedGarbage[i].boxLabel + '\n';
+            return checkedBoxLabel;
+        }
+
+        function createRadio(radioName) {   //创造不同垃圾
+            let radio = new Ext.form.Radio({
+                name: 'garbage',
+                boxLabel: radioName
+            });
+            return radio;
+        }
+
+        function createCheckbox(checkboxName) {   //创造垃圾的处理方式
+            let checkBox = new Ext.form.Checkbox({
+                boxLabel: checkboxName
+            })
+            return checkBox;
+        }
+
+
+        var item1 = new Ext.Panel({     //垃圾的布局
+            title: 'Q1番茄属于以下哪种垃圾？',
+            id: 'panel1',
+            height: 500,
+            items: [createRadio('干垃圾'), createRadio('湿垃圾'),
+            createRadio('有害垃圾'), createRadio('可回收物')]
+        })
+
+        var item2 = new Ext.Panel({    //垃圾处理方式的布局
+            title: 'Q50王大叔出门后，哪些是正确处理狗粑粑的方法？',
+            id: 'panel2',
+            height: 500,
+            items: [
+                createCheckbox('把粑粑用废报纸包好后回家冲掉'),
+                createCheckbox('受污染的报纸按有害垃圾处理'),
+                createCheckbox('没受污染的报纸按可回收垃圾处理'),
+                createCheckbox('受污染的报纸浸水后当湿垃圾处理')
+            ]
+        })
+
+        var textField = new Ext.form.TextField({   //定义用于放置垃圾处理方式的组件
+            id: 'myGarbage',
+            allowBlank: 'true',
+            width: 200,
+            fieldLabel: '垃圾的分类',
+            emptyText: '',
+            readOnly:true
+        })
+
+        var textArea = new Ext.form.TextArea({    //定义用于放置垃圾的组件
+            id: 'waysOfSolvingGarbage',
+            width: 200,
+            allowBlank: 'true',
+            fieldLabel: '垃圾处理方式',
+            emptyText: '',
+            readOnly:true
+        })
+
+        var form = new Ext.form.FormPanel({   //定义存放垃圾种类和垃圾处理方式的布局
+            labelAlign: 'center',
+            id: 'myForm',
+            title: '欢迎来到选中的垃圾',
+            labelWidth: 80,
+            frame: true,
+            // width: '100%',
+            //height: '100%',
+            items: [textField, textArea],
+            buttons: [{
+                text: 'submit',
+                handler: function () {
+                   let getGarbage = Ext.getCmp('myGarbage').getValue(getRadioSelect());  //显示选中的垃圾类型
+                let getCheckedBoxLabel =  Ext.getCmp('waysOfSolvingGarbage').getValue(getcheckedBoxLabel()); 
+                    if(getGarbage!=''&&getCheckedBoxLabel!='')
+                    Ext.Msg.alert('Tips', 'congratulations!!');
+                    else
+                    Ext.Msg.alert('Tips', '还有未完成的选择!!');
+
+                }
+            }]
+        });
+
+        var panel = new Ext.Panel({   //卡片的总体布局
+            id: 'wizard',
+            renderTo: Ext.getBody(),
+            title: '调查问卷',
+            layout: 'card',
+            activeItem: 0,
+            width: '60%',
+            height: 500,
+            //bodyStyle: 'padding:15px',
+            defaults: {
+                border: false
+            },
+            bbar: [{
+                id: 'move-prev',
+                text: '上一步',
+                handler: navHandler.createDelegate(this, [-1]),
+                disabled: true
+            }, '->', {
+                id: 'move-next',
+                text: '下一步',
+                handler: navHandler.createDelegate(this, [1])
+            }],
+            items: [{
+                id: 'card-0',
+                items: [item1]
+            }, {
+                id: 'card-1',
+                items: [item2]
+            },
+            {
+                id: 'card-2',
+                items: [form]
+                //items:[item2]
+            }
+            ]
+        });
+    });
+</script>
+
+<body>
+
+
+
+
+</body>
+
+</html>
